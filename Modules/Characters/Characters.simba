@@ -1,0 +1,8 @@
+(*
+Characters
+==========
+
+The characters modual includes NPCs, Players, and MyPlayer. These files contain
+routines for searching, interacting, counting, and more.
+
+*)

@@ -1,0 +1,17 @@
+(*
+Reflection
+==========
+
+The SRL Reflection Library is a vast library designed to return information from
+the RuneScape client to make accurate, efficient bots. This library is Free and
+Open Source so if you paid for this, please get your money back and report the
+seller. The direction of Reflection 2.2 is going toward a modular design and
+independence of other includes. It is also designed to be lightweight to
+maximize CPU performance while maintaining high level functions and an ease of
+scripting. It also features "simulated classes" that allow for dynamic loading
+of object information from smart. This allows for character and object tracking,
+as well as more possibilites for models to be included in this include. It will
+also feature a resource tracker to minimize on memory leaks in the include as
+well as in your scripts.
+
+*)

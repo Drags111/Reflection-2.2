@@ -1,0 +1,8 @@
+(*
+Interfaces
+==========
+
+Contains the routines for interfaces. This includes Banking, Inventory, Gametab,
+Shops, Deposit Boxes, etc.
+
+*)
