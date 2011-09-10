@@ -1,0 +1,377 @@
+(*
+
+Mouse
+=====
+
+Mouse routines.
+
+*)
+
+
+(*
+WindMouse
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure WindMouse(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended);
+
+
+.. note::
+
+    by Benland100
+
+Example:
+
+.. code-block:: pascal
+
+*)
+procedure R_WindMouse(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended);
+var
+  veloX, veloY, windX, windY, veloMag, dist, randomDist, lastDist, step: extended;
+  lastX, lastY: integer;
+  sqrt2, sqrt3, sqrt5: extended;
+begin
+  sqrt2:= sqrt(2);
+  sqrt3:= sqrt(3);
+  sqrt5:= sqrt(5);
+  while hypot(xs - xe, ys - ye) > 1 do
+  begin
+    dist:= hypot(xs - xe, ys - ye);
+    wind:= minE(wind, dist);
+    if dist >= targetArea then
+    begin
+      windX:= windX / sqrt3 + (random(round(wind) * 2 + 1) - wind) / sqrt5;
+      windY:= windY / sqrt3 + (random(round(wind) * 2 + 1) - wind) / sqrt5;
+    end else
+    begin
+      windX:= windX / sqrt2;
+      windY:= windY / sqrt2;
+      if (maxStep < 3) then
+      begin
+        maxStep:= random(3) + 3.0;
+      end else
+      begin
+        maxStep:= maxStep / sqrt5;
+      end;
+    end;
+    veloX:= veloX + windX;
+    veloY:= veloY + windY;
+    veloX:= veloX + gravity * (xe - xs) / dist;
+    veloY:= veloY + gravity * (ye - ys) / dist;
+    if hypot(veloX, veloY) > maxStep then
+    begin
+      randomDist:= maxStep / 2.0 + random(round(maxStep) div 2);
+      veloMag:= sqrt(veloX * veloX + veloY * veloY);
+      veloX:= (veloX / veloMag) * randomDist;
+      veloY:= (veloY / veloMag) * randomDist;
+    end;
+    lastX:= Round(xs);
+    lastY:= Round(ys);
+    xs:= xs + veloX;
+    ys:= ys + veloY;
+    if (lastX <> Round(xs)) or (lastY <> Round(ys)) then
+      MoveMouse(Round(xs), Round(ys));
+    step:= hypot(xs - lastX, ys - lastY);
+    wait(round((maxWait - minWait) * (step / maxStep) + minWait));
+    lastdist:= dist;
+  end;
+  if (Round(xe) <> Round(xs)) or (Round(ye) <> Round(ys)) then
+    MoveMouse(Round(xe), Round(ye));
+end;
+
+(*
+MMouse
+~~~~~~
+
+.. code-block:: pascal
+
+    procedure MMouse(x, y, rx, ry: integer);
+
+Moves the mouse.
+
+.. note::
+
+    by Benland100, laptop mouse by Hobbit (and nielsie95)
+
+Example:
+
+.. code-block:: pascal
+
+*)
+procedure R_MMouse(x, y, rx, ry: integer);
+var
+  cx, cy: integer;
+  randSpeed: Extended;
+  {$IFDEF UseLaptopMouse}
+    seg, e, f, g, nx, ny, hypo: Integer;
+    a, b, c: Extended;
+    Miss: Boolean;
+  {$ENDIF}
+begin
+  GetMousePos(cx, cy);
+  {$IFDEF UseLaptopMouse}
+    miss := (Random(R_LMouse_MissChance) = 0);
+    e:= 0;
+    a:= x - cx;
+    b:= y - cy;
+    c:= Pow(a,2) + Pow(b,2)
+    hypo:= Round(Sqrt(c));
+    case hypo of
+      0: Exit;
+      1..225: seg:=1;
+      226..600: seg:= Random(2) + 1;
+      601..1800: seg:= random(3) + 2;
+      else seg := 5;
+    end;
+    f := Round( a / seg);
+    g := Round( b / seg);
+    repeat
+      Wait(30 + random(50));
+    {Begin: Modified from MMouse by Benland100}
+      randSpeed := (random(R_MouseSpeed) / 2.0 + R_MouseSpeed) / 10.0;
+      if randSpeed = 0.0 then
+        randSpeed := 0.1;
+      getMousePos(cx,cy);
+      nx:= (cx + (f * e)) + random(rx);
+      ny:= (cy + (g * e)) + random(ry);
+    {End: Modified from MMouse by Benland100}
+      if Miss then
+      begin
+        nx:= nx + RandomRange(rx, rx * 2);
+        ny:= ny + RandomRange(ry, ry * 2);
+      end;
+      WindMouse(cx,cy,nx,ny,11.0,8.0,10.0/randSpeed,12.0/randSpeed,10.0*randSpeed,10.0*randSpeed);
+      e:= e + 1;
+    until(e = seg);
+    GetMousePos(cx, cy);
+    if not PointInBox(Point(cx, cy), IntToBox(x, y, x + rx, y + ry)) then
+    begin
+      Wait(30 + random(30));
+      WindMouse(cx,cy,(x + random(rx)),(y + random(ry)),11.0,6.0,10.0/randSpeed,15.0/randSpeed,10.0*randSpeed,10.0*randSpeed);
+    end;
+  {$ELSE}
+    randSpeed:= (random(R_MouseSpeed) / 2.0 + R_MouseSpeed) / 10.0;
+    if randSpeed = 0.0 then
+      randSpeed := 0.1;
+    X := x + random(rx);
+    Y := y + random(ry);
+    R_WindMouse(cx,cy,x,y,9.0,3.0,10.0/randSpeed,15.0/randSpeed,10.0*randSpeed,10.0*randSpeed);
+  {$ENDIF}
+end;
+
+(*
+MouseAction
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function MouseAction(left: boolean): integer;
+
+Converts the (SCAR) boolean for mouse button the the Simba integer for the button
+
+.. note::
+
+    by Simba development
+
+.. note::
+    This should probably be removed.
+
+Example:
+
+.. code-block:: pascal
+
+*)
+function R_MouseAction(left: boolean): integer;
+begin
+  if left then
+    result := mouse_left
+  else
+    result := mouse_right;
+end;
+
+(*
+ClickMouse2
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure ClickMouse2(left : boolean);
+
+Clicks the mouse in a human way on the current mouse spot.
+
+.. note::
+
+    by SRL Community
+
+Example:
+
+.. code-block:: pascal
+
+*)
+procedure R_ClickMouse2(left : boolean);
+var
+  A, B, C: Integer;
+begin
+  GetMousePos(b, c);
+  HoldMouse(b, c, R_MouseAction(Left));
+  repeat
+    Wait(20 + Random(30));
+    A := A + 1;
+  until(A > 4);
+  GetMousePos(B, C);
+  ReleaseMouse(B, C, R_MouseAction(Left));
+  Wait(50+Random(50));
+end;
+
+(*
+Mouse
+~~~~~
+
+.. code-block:: pascal
+
+    procedure Mouse(mousex, mousey, ranx, rany: Integer; left: Boolean);
+
+Moves then clicks mouse.
+
+.. note::
+
+    by Mutant Squirrle, with a small fix by hy71194
+
+Example:
+
+.. code-block:: pascal
+
+*)
+procedure R_Mouse(mousex, mousey, ranx, rany: Integer; left: Boolean);
+begin
+  R_MMouse(mousex, mousey, ranx, rany);
+  Wait(60 + Random(30));
+  R_ClickMouse2(left);
+  Wait(50 + Random(50));
+end;
+
+(*
+MouseBox
+~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure MouseBox(x1, y1, x2, y2: Integer; ClickType: Integer);
+
+Moves mouse into a random position in the box. Clicks if told to.
+
+.. note::
+
+    by SKy Scripter and Nielsie95
+
+Example:
+
+.. code-block:: pascal
+
+*)
+procedure R_MouseBox(x1, y1, x2, y2: Integer; ClickType: Integer);
+begin
+  case ClickType of
+    1 : R_Mouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0, True);
+    2 : R_Mouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0, False);
+    3 : R_MMouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0);
+  else
+    R_Debug('ClickType is NOT a valid number!', 'MouseBox');
+  end;
+end;
+
+(*
+SleepAndMoveMouse
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure SleepAndMoveMouse(Time: Integer);
+
+Waits for specified time and moves mouse around like bored human would.
+
+.. note::
+
+    by RsN
+
+Example:
+
+.. code-block:: pascal
+
+*)
+procedure R_SleepAndMoveMouse(Time: Integer);
+var
+  Moving: Boolean;
+  mx, my: Integer;
+  x, y, xv, yv: Extended;
+  gx, gy: Extended;
+  T: Integer;
+begin
+  GetMousePos(mx, my);
+  x := mx;
+  y := my;
+  if (Random(2) = 0) then
+    Moving := False
+  else
+    Moving := True;
+  gx := 130 + Random(500);
+  gy := 130 + Random(300);
+  T := GetTickCount;
+  repeat
+    Sleep(10);
+    if (Moving) then
+    begin
+      if (gx > x) then
+        xv := xv + 0.1
+      else
+        xv := xv - 0.1;
+      if (gy > y) then
+        yv := yv + 0.1
+      else
+        yv := yv - 0.1;
+      x := x + xv;
+      y := y + yv;
+      MoveMouse(Round(x), Round(y));
+    end;
+    if (Random(100) = 0) then
+      Moving := not Moving;
+    if (Random(30) = 0) then
+    begin
+      gx := 130 + Random(500);
+      gy := 130 + Random(300);
+    end;
+  until (Abs(GetTickCount - T) >= Time);
+end;
+
+(*
+DragMouse
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure DragMouse(StartX, StartY, SRandX, SRandY, EndX, EndY, ERandX, ERandY: Integer);
+
+Leftclicks StartX, StartY and drags mouse to EndX, EndY.
+
+.. note::
+
+    by NaumanAkhlaQ
+
+Example:
+
+.. code-block:: pascal
+
+*)
+procedure R_DragMouse(StartX, StartY, SRandX, SRandY, EndX, EndY, ERandX, ERandY: Integer);
+begin
+  R_MMouse(StartX, StartY, SRandX, SRandY);
+  Wait(150 + Random(20));
+  GetMousePos(StartX, StartY);
+  HoldMouse(StartX, StartY, R_MouseAction(true));
+  Wait(250 + Random(320));
+  R_MMouse(EndX, EndY, ERandX, ERandY);
+  Wait(250 + Random(120));
+  GetMousePos(EndX, EndY);
+  ReleaseMouse(EndX, EndY, R_MouseAction(true));
+end;

@@ -1,6 +1,8 @@
 SRL Reflection Library v2.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Code Name: Rafiki.
+
 This is SRL Reflection v2.2, designed to be modular and lightweight,
 as well as independant from outside resources (includes). The goal
 for this include is to use as little CPU and RAM as possible to allow

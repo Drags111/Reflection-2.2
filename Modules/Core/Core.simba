@@ -5,3 +5,13 @@ Core
 The core modual includes the base files of reflection needed for function.
 
 *)
+
+procedure R_Debug(Message, Category: String);
+begin
+  Writeln('['+Category+'] '+Message);
+end;
+
+{$include_once Hooks.simba}
+{$include_once SMART.simba}
+{$include_once Globals.simba}
+{$include_once Mouse.simba}

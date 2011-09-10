@@ -1,0 +1,25 @@
+(*
+Globals
+=======
+
+File containing globally used vars, constants, and more.
+
+*)
+
+{ var Smart_Server: Integer;
+  Description: Smart Server to Load. }
+var
+  Smart_Server: Integer;
+
+{ var Smart_Members, Smart_Signed, Smart_SuperDetail: Boolean
+  Description: Smart Options to Load. }
+var
+  Smart_Members, Smart_Signed, Smart_SuperDetail: Boolean;
+
+{ var R_MouseSpeed, R_LMouse_MissChance: Integer
+  Description: Speed of the mouse and (if UseLaptopMouse is enabled) miss chance.}
+var
+  R_MouseSpeed: Integer;
+  {$IFDEF UseLaptopMouse}
+  R_LMouse_MissChance: Integer;
+  {$ENDIF}

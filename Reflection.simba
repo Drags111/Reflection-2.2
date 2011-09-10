@@ -15,3 +15,37 @@ also feature a resource tracker to minimize on memory leaks in the include as
 well as in your scripts.
 
 *)
+
+{$DEFINE REF_SMART}
+{.loadlib LibReflection}
+
+{$i Modules\Core\Core.simba}
+
+function SetupReflection: Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+
+  R_MouseSpeed := 15;
+  {$IFDEF UseLaptopMouse}
+    R_LMouse_MissChance := 75;
+  {$ENDIF}
+
+  if(SMART_Server = 0)then
+  begin
+    SMART_Server := 35;
+    SMART_Signed := True;
+    SMART_Members := False;
+    SMART_SuperDetail := False;
+  end;
+  R_SmartSetup(SMART_Server, SMART_Members, SMART_Signed, SMART_SuperDetail);
+  T := GetSystemTime;
+  while not R_SMART_Ready do
+  begin
+    if((GetSystemTime - T) > 300000)then
+      Break;
+    Wait(600);
+  end;
+  Result := R_SMART_Ready;
+end;

@@ -1,0 +1,105 @@
+(*
+SMART
+=====
+
+This file overrides basic simba functions with those of SMART's. Gives SMART
+control of mouse and window functions.
+
+*)
+
+function IsKeyDown(C:Byte): Boolean;
+begin
+  Result := SmartIsKeyDown(C);
+end;
+
+procedure MoveMouse(X, Y: Integer);
+begin
+  SmartMoveMouse(X, Y);
+end;
+
+procedure HoldMouse(X, Y: Integer; Button: Integer);
+begin
+  if(Button = Mouse_Left)then
+    SmartHoldMouse(X, Y, True)
+  else if(Button = Mouse_Right)then
+    SmartHoldMouse(X, Y, False)
+  else
+    RaiseException(ErCustomError,'Unknown mouse button in SmartHoldMouse');
+end;
+
+procedure ReleaseMouse(x, y: Integer; button : integer);
+begin
+  if(Button = Mouse_Left)then
+    SmartReleaseMouse(X, Y, True)
+  else if(Button = Mouse_Right)then
+    SmartReleaseMouse(X, Y, False)
+  else
+    RaiseException(ErCustomError,'Unknown mouse button in SmartReleaseMouse');
+end;
+
+procedure KeyUp(Key: Byte);
+begin
+  If Key = 13 Then
+    Key := 10;
+  SmartReleaseKey(Key);
+end;
+
+procedure KeyDown(Key: Byte);
+begin
+  If Key = 13 Then
+    Key := 10;
+  SmartHoldKey(Key);
+end;
+
+procedure SendKeys(S: String);
+begin
+  SmartSendKeys(S);
+end;
+
+procedure GetMousePos(var X, Y: Integer);
+begin
+  SmartGetMousePos(X, Y);
+end;
+
+function GetColor(X, Y: Integer): Integer;
+begin
+  Result := SmartGetColor(X, Y);
+end;
+
+procedure SmartSetTarget;
+begin
+  SetTargetArray(SmartImageArray, 765, 503);
+end;
+
+function FindWindow(Title: String): Boolean;
+begin
+  Result := True;
+end;
+
+procedure ActivateClient;
+begin
+end;
+
+function FindWindowBySize(Width, Height: Integer): Boolean;
+begin
+  Result := True;
+end;
+
+procedure R_SmartSetup(Server: Integer; Members, Signed, SuperDetail: Boolean);
+var
+  Prefix: string;
+begin
+  Prefix := ReadINI('World' + IntToStr(Server), 'Prefix', IncludePath + 'Reflection-2.2/Modules/Core/worlds.ini');
+  if(Prefix = '')then
+  begin
+    Writeln('Invalid world number or corrupted world list. Please review your settings');
+    TerminateScript;
+  end;
+  SmartSetupEx('http://'+Prefix+'.runescape.com/', 'plugin.js?param=o0,a' + IntToStr((Integer(not(Signed)) + 1) * Integer(not((SuperDetail and Signed)))) + ',m' + IntToStr(Integer(Members)), 765, 503, 's');
+end;
+
+function R_Smart_Ready: Boolean;
+begin
+  Result := SmartGetFieldInt(0, hook_static_LoginIndex) >= 3;
+end;
+
