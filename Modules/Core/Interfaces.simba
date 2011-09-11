@@ -1,0 +1,92 @@
+(*
+Interfaces
+==========
+
+File containing interface routines.
+
+*)
+
+(*
+R_ValidInterface
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ValidInterface(Index: Integer): Boolean;
+
+Returns true if the interface is valid.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ValidInterface(Index: Integer): Boolean;
+begin
+  Result := SmartGetFieldArrayBoolean(0, hook_static_ValidInterfaces, Index);
+end;
+
+(*
+R_GetInterface
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInterface(ParentI, ChildI: Integer): TInterface;
+
+Retrieve's the interface's child object and stores in a TInterface var.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetInterface(ParentI, ChildI: Integer): TInterface;
+var
+  Child: Integer;
+begin
+  if not R_ValidInterface(ParentI)then
+    Exit;
+
+  Child := SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, ChildI);
+  if not SmartIsNull(Child)then
+    Result := Interface_Create(Child);
+end;
+
+(*
+R_GetInterfaceComponent
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInterfaceComponent(ParentI, ChildI, ComponentI: Integer): TInterface;
+
+Gets all Interface -> Child -> Component information and stores in a TInterface.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetInterfaceComponent(ParentI, ChildI, ComponentI: Integer): TInterface;
+var
+  Child, Component: Integer;
+begin
+  if not R_ValidInterface(ParentI)then
+    Exit;
+
+  Child := SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, ChildI);
+  if SmartIsNull(Child)then
+    Exit;
+
+  Component := SmartGetFieldArrayObject(Child, hook_interface_Children, ComponentI);
+  if SmartIsNull(Component)then
+  begin
+    SmartFreeObject(Child);
+    Exit;
+  end;
+
+  Result := Interface_Create(Component);
+end;
+
+

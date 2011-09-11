@@ -1,0 +1,132 @@
+(*
+Interface
+=========
+
+Wrapper for interfaces.
+
+*)
+
+type
+  TInterface = record
+    Obj: Integer;
+  end;
+
+function Interface_Create(Obj: Integer): TInterface;
+begin
+  Result.Obj := Obj;
+end;
+
+procedure Interface_Free(IFace: TInterface);
+begin
+  SmartFreeObject(IFace.Obj);
+end;
+
+(*
+R_GetInterfaceParentID
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInterfaceParentID(Obj: Integer): Integer;
+
+Gets the ID of the parent of the specified interface. Used for absolute
+positioning.
+
+.. note::
+
+  by Pyroryan and Drags111
+
+*)
+function Interface_GetParentID(IFace: TInterface): Integer;
+var
+  ParentID, MainID, InterfaceNC, Nodes, Tail, Node, ID, Next : Integer;
+  NodesSize, Index : Integer;
+begin
+  ParentID := SmartGetFieldInt(IFace.Obj, hook_interface_ParentID);
+  if (ParentID <> -1) then
+  begin
+    Result := ParentID;
+    Exit;
+  end;
+  MainID := Trunc(SmartGetFieldInt(IFace.Obj, hook_interface_ID) div 65536);
+  InterfaceNC := SmartGetFieldObject(0, hook_static_InterfaceNC);
+  if (InterfaceNC = 0) then
+  begin
+    SmartFreeObject(InterfaceNC);
+    Exit;
+  end;
+  Nodes := SmartGetFieldObject(InterfaceNC, hook_nodecache_Nodes);
+  NodesSize := SmartGetFieldArraySize(Nodes, '', 1);
+  try
+    for Index := 0 to (NodesSize - 1) do
+    begin
+      Tail := SmartGetFieldArrayObject(Nodes, '', Index);
+      Node := SmartGetFieldObject(Tail, hook_node_Next);
+      while (not (SmartIsEqual(Tail, Node))) do
+      begin
+        ID := SmartGetFieldInt(Node, hook_interfacenode_ID);
+        if (MainID = ID) then
+        begin
+          Result := SmartGetFieldLongL(Node, hook_node_ID);
+          Exit;
+        end;
+        Next := SmartGetFieldObject(Node, hook_node_Next);
+        SmartFreeObject(Node);
+        Node := Next;
+      end;
+      SmartFreeObject(Tail);
+      SmartFreeObject(Node);
+      SmartFreeObject(Next);
+    end;
+  finally
+    SmartFreeObject(Next);
+    SmartFreeObject(Node);
+    SmartFreeObject(Nodes);
+    SmartFreeObject(Tail);
+    SmartFreeObject(InterfaceNC);
+  end;
+end;
+
+function Interface_GetAbsolutePos(IFace: TInterface): TPoint;
+var
+  X, Y, ParentID, BoundIndex: Integer;
+  Bounds: Integer;
+  Parent: TInterface;
+  ParentPoint: TPoint;
+begin
+  X := SmartGetFieldInt(IFace.Obj, hook_interface_X);
+  Y := SmartGetFieldInt(IFace.Obj, hook_interface_Y);
+  ParentID := Interface_GetParentID(IFace);
+
+  if(ParentID > 0)then
+  begin
+    try
+      Parent := Interface_Create(SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentID shr 16, ParentID and $FFFF));
+
+      ParentPoint := Interface_GetAbsolutePos(Parent);
+
+      X := X + ParentPoint.x;
+      Y := Y + ParentPoint.y;
+
+      if(SmartGetFieldInt(Parent.Obj, hook_interface_HorizontalScrollBarSize) <> 0)then
+        X := X - SmartGetFieldInt(Parent.Obj, hook_interface_HorizontalScrollBarPosition);
+      if(SmartGetFieldInt(Parent.Obj, hook_interface_VerticalScrollBarSize) <> 0)then
+        Y := Y - SmartGetFieldInt(Parent.Obj, hook_interface_VerticalScrollBarPosition);
+    finally
+      Interface_Free(Parent);
+    end;
+  end else
+  begin
+    BoundIndex := SmartGetFieldInt(IFace.Obj, hook_interface_BoundsArrayIndex);
+    Bounds := SmartGetFieldArrayObject(0, hook_static_InterfaceBoundsArray, BoundIndex);
+    if((Bounds > 0) and (SmartGetFieldArrayBoolean(0, hook_static_InterfaceDismissBounds, BoundIndex)))then
+    begin
+      Result := Point(SmartGetFieldInt(Bounds, 'x'),
+                      SmartGetFieldInt(Bounds, 'y'));
+      SmartFreeObject(Bounds);
+      Exit;
+    end;
+    SmartFreeObject(Bounds);
+  end;
+  Result := Point(X, Y);
+end;

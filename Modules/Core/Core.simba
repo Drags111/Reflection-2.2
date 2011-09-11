@@ -15,3 +15,5 @@ end;
 {$include_once SMART.simba}
 {$include_once Globals.simba}
 {$include_once Mouse.simba}
+{$include_once Reflection-2.2/Wrappers/Interface.simba}
+{$include_once Interfaces.simba}
