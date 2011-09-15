@@ -375,3 +375,27 @@ begin
   GetMousePos(EndX, EndY);
   ReleaseMouse(EndX, EndY, R_MouseAction(true));
 end;
+
+(*
+R_MiddleBox
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_MiddleBox(b : TBox) : TPoint;
+
+Returns the middle of the box.
+
+.. note::
+
+    by Raym0nd
+
+Example:
+
+.. code-block:: pascal
+
+*)
+function R_MiddleBox(B : TBox) : TPoint;
+begin
+  result := Point((B.x2+B.x1) div 2,(B.y2+B.y1) div 2);
+end;
