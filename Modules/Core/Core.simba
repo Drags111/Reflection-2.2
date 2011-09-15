@@ -6,9 +6,88 @@ The core modual includes the base files of reflection needed for function.
 
 *)
 
+(*
+R_Debug
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_Debug(Message, Category: String);
+
+Prints "[Category] Message". If Category is undefined it
+defaults to "Reflection"
+
+.. note::
+
+  by Drags111
+
+*)
 procedure R_Debug(Message, Category: String);
 begin
-  Writeln('['+Category+'] '+Message);
+  if (Category = '') then
+    Writeln('[Reflection] '+Message)
+     else Writeln('['+Category+'] '+Message);
+end;
+
+(*
+R_TrimHTML
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TrimHTML(S : string): string;
+
+Removes the HTML junk from a string.
+
+.. note::
+
+  by lordsaturn, pyroryan
+
+*)
+function R_TrimHTML(S : string): string;
+var
+  P, P2, PLength: integer;
+  Temp: string;
+begin
+  P := Pos('<', S);
+  P2 := Pos('>', S);
+  Result := S;
+  PLength := P2 - P + 1;
+  while (P <> 0) and (P2 <> 0) do
+  begin
+    Delete(Result, P, PLength);
+    P := Pos('<', Result);
+    Temp := Result;
+    Delete(Temp, 1, P - 1);
+    PLength := Pos('>', Temp);
+  end;
+end;
+
+(*
+R_StrInArr
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_StrInArr(str: string; arrS: TStringArray): Boolean;
+
+Returns True if str is found in the Array. Case sensitive. Uses Pos.
+
+.. note::
+
+  by Narcle, Nava2
+
+*)
+function R_StrInArr(str: string; arrS: TStringArray): Boolean;
+var
+  I, L, H: Integer;
+begin
+  Result := True;
+  L := Low(arrS);    H := High(arrS);
+  for I := L to H do
+    if Pos(Str, arrS[I]) > 0 then
+      Exit;
+  Result := False;
 end;
 
 {$include_once Hooks.simba}

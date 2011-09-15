@@ -22,15 +22,15 @@ begin
 end;
 
 (*
-R_GetInterfaceParentID
+Interface_GetParentID
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function R_GetInterfaceParentID(Obj: Integer): Integer;
+    function Interface_GetParentID(IFace: TInterface): Integer;
 
-Gets the ID of the parent of the specified interface. Used for absolute
-positioning.
+Gets the ID of the parent of the specified interface. Used for any
+part of the interface information that relies on the parent.
 
 .. note::
 
@@ -87,6 +87,22 @@ begin
   end;
 end;
 
+(*
+Interface_GetAbsolutePos
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetAbsolutePos(IFace: TInterface): TPoint;
+
+Gets the absolute position of the interface. Uses parent to account for
+scrollbar and the parent's location.
+
+.. note::
+
+  by Drags111
+
+*)
 function Interface_GetAbsolutePos(IFace: TInterface): TPoint;
 var
   X, Y, ParentID, BoundIndex: Integer;
@@ -129,4 +145,545 @@ begin
     SmartFreeObject(Bounds);
   end;
   Result := Point(X, Y);
+end;
+
+(*
+Interface_GetActions
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetActions(IFace: TInterface): TStringArray;
+
+Gets the actions of the IFace.
+
+.. note::
+
+  by Drags111
+
+*)
+function Interface_GetActions(IFace: TInterface): TStringArray;
+var
+  Length, C, i: Integer;
+  Action: String;
+begin
+  Length := SmartGetFieldArraySize(IFace.Obj, Hook_Interface_Actions, 1);
+  if (Length <= 0)then
+    Exit;
+
+  C := 0;
+  SetLength(Result, Length);
+
+  for i := 0 to Length-1 do
+  begin
+    Action := SmartGetFieldArrayString(IFace.Obj, hook_interface_Actions, i);
+    if(Action <> '')then
+    begin
+      Result[C] := Action;
+      Inc(C);
+    end;
+  end;
+  SetLength(Result, C);
+end;
+
+(*
+Interface_IsHidden
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_IsHidden(IFace: TInterface): Boolean;
+
+Gets Interface.IsHidden. Uses parent information
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_IsHidden(IFace: TInterface): Boolean;
+var
+  ParentID: Integer;
+  Parent: TInterface;
+begin
+  ParentID := Interface_GetParentID(IFace);
+  if(ParentID > 0)then
+  begin
+    try
+      Parent := Interface_Create(SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentID shr 16, ParentID and $FFFF));
+      Result := SmartGetFieldBoolean(Parent.Obj, hook_interface_IsHidden);
+    finally
+      Interface_Free(Parent);
+    end;
+  end else Result := SmartGetFieldBoolean(IFace.Obj, hook_interface_IsHidden);
+end;
+
+(*
+Interface_GetID
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetID(IFace: TInterface): Integer;
+
+Gets Interface.ID
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetID(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_ID);
+end;
+
+(*
+Interface_GetComponentID
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetComponentID(IFace: TInterface): Integer;
+
+Gets Interface.ComponentID
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetComponentID(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_ComponentID);
+end;
+
+(*
+Interface_GetStackSize
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetStackSize(IFace: TInterface): Integer;
+
+Gets Interface.ComponentStackSize
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetStackSize(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_ComponentStackSize);
+end;
+
+(*
+Interface_GetTextureID
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetTextureID(IFace: TInterface): Integer;
+
+Gets Interface.TextureID
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetTextureID(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_TextureID);
+end;
+
+(*
+Interface_GetModelID
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetModelID(IFace: TInterface): Integer;
+
+Gets Interface.ModelID
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetModelID(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_ModelID);
+end;
+
+(*
+Interface_GetModelZoom
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetModelZoom(IFace: TInterface): Integer;
+
+Gets Interface.ModelZoom
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetModelZoom(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_ModelZoom);
+end;
+
+(*
+Interface_GetRelativeX
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetRelativeX(IFace: TInterface): Integer;
+
+Gets Interface.X; It doesn't account for parent offsets.
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetRelativeX(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_X);
+end;
+
+(*
+Interface_GetRelativeY
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetRelativeY(IFace: TInterface): Integer;
+
+Gets Interface.Y; It doesn't account for parent offsets.
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetRelativeY(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_Y);
+end;
+
+(*
+Interface_GetWidth
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetWidth(IFace: TInterface): Integer;
+
+Gets Interface.Width
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetWidth(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_Width);
+end;
+
+(*
+Interface_GetHeight
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetHeight(IFace: TInterface): Integer;
+
+Gets Interface.Height
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetHeight(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_Height);
+end;
+
+(*
+Interface_GetText
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetText(IFace: TInterface): String;
+
+Gets Interface.Text
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetText(IFace: TInterface): String;
+begin
+  Result := SmartGetFieldString(IFace.Obj, hook_interface_Text);
+end;
+
+(*
+Interface_GetTextColor
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetTextColor(IFace: TInterface): Integer;
+
+Gets Interface.TextColor
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetTextColor(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_TextColor);
+end;
+
+(*
+Interface_GetName
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetName(IFace: TInterface): String;
+
+Gets Interface.Name
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetName(IFace: TInterface): String;
+begin
+  Result := SmartGetFieldString(IFace.Obj, hook_interface_ComponentName);
+end;
+
+(*
+Interface_GetVScrollSize
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetVScrollSize(IFace: TInterface): Integer;
+
+Gets Interface.VerticalScrollBarSize; Interface must be a vertical
+scrollbar
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetVScrollSize(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_VerticalScrollBarSize);
+end;
+
+(*
+Interface_GetVScrollPosition
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetVScrollPosition(IFace: TInterface): Integer;
+
+Gets Interface.VerticalScrollBarPosition; Interface must be a vertical
+scrollbar
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetVScrollPosition(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_VerticalScrollBarPosition);
+end;
+
+(*
+function Interface_GetVThumbSize(IFace: TInterface): Integer;
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetVThumbSize(IFace: TInterface): Integer;
+
+Gets Interface.VerticalScrollBarThumbSize; Interface must be a vertical
+scrollbar
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetVThumbSize(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_VerticalScrollBarThumbSize);
+end;
+
+(*
+Interface_GetHScrollSize
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetHScrollSize(IFace: TInterface): Integer;
+
+Gets Interface.HorizontalScrollBarSize; Interface must be a horizontal
+scrollbar
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetHScrollSize(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_HorizontalScrollBarSize);
+end;
+
+(*
+Interface_GetHScrollPosition
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetHScrollPosition(IFace: TInterface): Integer;
+
+Gets Interface.HorizontalScrollBarPosition; Interface must be a horizontal
+scrollbar
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetHScrollPosition(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_HorizontalScrollBarPosition);
+end;
+
+(*
+Interface_GetHThumbSize
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetHThumbSize(IFace: TInterface): Integer;
+
+Gets Interface.HorizontalScrollBarThumbSize; Interface must be a horizontal
+scrollbar
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetHThumbSize(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_HorizontalScrollBarThumbSize);
+end;
+
+(*
+Interface_GetBoundsArrayIndex
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetBoundsArrayIndex(IFace: TInterface): Integer;
+
+Gets Interface.BoundArrayIndex. Used for getting absolute position
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetBoundsArrayIndex(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_BoundsArrayIndex);
+end;
+
+(*
+Interface_GetX
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetX(IFace: TInterface): Integer;
+
+Gets Interface's onscreen x position
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetX(IFace: TInterface): Integer;
+begin
+  Result := Interface_GetAbsolutePos(IFace).x;
+end;
+
+(*
+Interface_GetY
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetY(IFace: TInterface): Integer;
+
+Gets Interface's onscreen y position
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetY(IFace: TInterface): Integer;
+begin
+  Result := Interface_GetAbsolutePos(IFace).y;
+end;
+
+(*
+Interface_GetBounds
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetBounds(IFace: TInterface): TBox;
+
+Gets Interface's onscreen bounds
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetBounds(IFace: TInterface): TBox;
+var
+  P: TPoint;
+begin
+  P.x := Interface_GetX(IFace) + Interface_GetWidth(IFace);
+  P.y := Interface_Gety(IFace) + Interface_GetHeight(IFace);
+  Result := PointToBox(Interface_GetAbsolutePos(IFace), P);
 end;
