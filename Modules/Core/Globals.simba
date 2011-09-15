@@ -153,6 +153,7 @@ const
   RCHAT_ASSIST  = 16;
 
   {Misc Constants}
+  mouse_Move = 3;
   CROSSHAIR_NONE = 0;
   CROSSHAIR_YELLOW = 1;
   CROSSHAIR_RED = 2;

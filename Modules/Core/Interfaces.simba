@@ -2,7 +2,7 @@
 Interfaces
 ==========
 
-File containing core interface routines.
+File containing interface routines.
 
 *)
 
@@ -318,9 +318,9 @@ R_ClickInterface
 
 Moves the mouse to and (depending on the ClickType) will click the interface
 child/component. The ClickType follows the same rule as MouseBox:
-  1: Left Click
-  2: Right Click
-  3: No Click
+  1/mouse_Left  : Left Click
+  2/mouse_Right : Right Click
+  3/mouse_Move  : No Click
 
 .. note::
 
@@ -335,12 +335,32 @@ begin
   R_MouseBox(Box.X1, Box.Y1, Box.X2, Box.Y2, ClickType);
 end;
 
-procedure R_ClickInterfaceMiddle(Child: TInterface; ClickType: Integer);
+(*
+R_ClickInterfaceMiddle
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_ClickInterfaceMiddle(Child: TInterface; ClickType, Range: Integer);
+
+Moves the mouse to and (depending on the ClickType) will click the interface
+child/component in a RangexRange box of the middle point. The ClickType follows
+the same rule as MouseBox:
+  1/mouse_Left  : Left Click
+  2/mouse_Right : Right Click
+  3/mouse_Move  : No Click
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_ClickInterfaceMiddle(Child: TInterface; ClickType, Range: Integer);
 var
   P: TPoint;
 begin
   P := R_MiddleBox(Interface_GetBounds(Child));
-  R_MouseBox(P.x - 10, P.y - 10, P.x + 10, P.y + 10, ClickType);
+  R_MouseBox(P.x - (Range/2), P.y - (Range/2), P.x + (Range/2), P.y + (Range/2), ClickType);
 end;
 
 (*
@@ -352,8 +372,6 @@ R_ScrollTo
     function R_ScrollTo(Target, UpA, DnA: TInterfaceChild) : Boolean;
 
 Scrolls to the Target using the Up and Down arrows specified by ScrollBar.
-Works for both TRSChild and TRSComponent
-  @Box - Box that the Target needs to be in for the function to return true.
 
 .. note::
 

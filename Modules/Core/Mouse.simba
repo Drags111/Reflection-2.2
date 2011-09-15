@@ -9,12 +9,12 @@ Mouse routines.
 
 
 (*
-WindMouse
+R_WindMouse
 ~~~~~~~~~
 
 .. code-block:: pascal
 
-    procedure WindMouse(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended);
+    procedure R_WindMouse(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended);
 
 
 .. note::
@@ -81,12 +81,12 @@ begin
 end;
 
 (*
-MMouse
+R_MMouse
 ~~~~~~
 
 .. code-block:: pascal
 
-    procedure MMouse(x, y, rx, ry: integer);
+    procedure R_MMouse(x, y, rx, ry: integer);
 
 Moves the mouse.
 
@@ -161,21 +161,18 @@ begin
 end;
 
 (*
-MouseAction
+R_MouseAction
 ~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function MouseAction(left: boolean): integer;
+    function R_MouseAction(left: boolean): integer;
 
 Converts the (SCAR) boolean for mouse button the the Simba integer for the button
 
 .. note::
 
     by Simba development
-
-.. note::
-    This should probably be removed.
 
 Example:
 
@@ -191,12 +188,12 @@ begin
 end;
 
 (*
-ClickMouse2
+R_ClickMouse2
 ~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    procedure ClickMouse2(left : boolean);
+    procedure R_ClickMouse2(left : boolean);
 
 Clicks the mouse in a human way on the current mouse spot.
 
@@ -225,12 +222,12 @@ begin
 end;
 
 (*
-Mouse
+R_Mouse
 ~~~~~
 
 .. code-block:: pascal
 
-    procedure Mouse(mousex, mousey, ranx, rany: Integer; left: Boolean);
+    procedure R_Mouse(mousex, mousey, ranx, rany: Integer; left: Boolean);
 
 Moves then clicks mouse.
 
@@ -252,12 +249,12 @@ begin
 end;
 
 (*
-MouseBox
+R_MouseBox
 ~~~~~~~~
 
 .. code-block:: pascal
 
-    procedure MouseBox(x1, y1, x2, y2: Integer; ClickType: Integer);
+    procedure R_MouseBox(x1, y1, x2, y2: Integer; ClickType: Integer);
 
 Moves mouse into a random position in the box. Clicks if told to.
 
@@ -273,21 +270,21 @@ Example:
 procedure R_MouseBox(x1, y1, x2, y2: Integer; ClickType: Integer);
 begin
   case ClickType of
-    1 : R_Mouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0, True);
-    2 : R_Mouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0, False);
-    3 : R_MMouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0);
+    mouse_Left : R_Mouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0, True);
+    mouse_Right : R_Mouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0, False);
+    mouse_Move : R_MMouse(RandomRange(x1, x2), RandomRange(y1, y2), 0, 0);
   else
     R_Debug('ClickType is NOT a valid number!', 'MouseBox');
   end;
 end;
 
 (*
-SleepAndMoveMouse
+R_SleepAndMoveMouse
 ~~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    procedure SleepAndMoveMouse(Time: Integer);
+    procedure R_SleepAndMoveMouse(Time: Integer);
 
 Waits for specified time and moves mouse around like bored human would.
 
@@ -345,12 +342,12 @@ begin
 end;
 
 (*
-DragMouse
+R_DragMouse
 ~~~~~~~~~
 
 .. code-block:: pascal
 
-    procedure DragMouse(StartX, StartY, SRandX, SRandY, EndX, EndY, ERandX, ERandY: Integer);
+    procedure R_DragMouse(StartX, StartY, SRandX, SRandY, EndX, EndY, ERandX, ERandY: Integer);
 
 Leftclicks StartX, StartY and drags mouse to EndX, EndY.
 

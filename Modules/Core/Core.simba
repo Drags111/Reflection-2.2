@@ -6,9 +6,27 @@ The core modual includes the base files of reflection needed for function.
 
 *)
 
+(*
+R_Debug
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_Debug(Message, Category: String);
+
+Prints "[Category] Message". If Category is undefined it
+defaults to "Reflection"
+
+.. note::
+
+  by Drags111
+
+*)
 procedure R_Debug(Message, Category: String);
 begin
-  Writeln('['+Category+'] '+Message);
+  if (Category = '') then
+    Writeln('[Reflection] '+Message)
+     else Writeln('['+Category+'] '+Message);
 end;
 
 (*
