@@ -687,3 +687,31 @@ begin
   P.y := Interface_Gety(IFace) + Interface_GetHeight(IFace);
   Result := PointToBox(Interface_GetAbsolutePos(IFace), P);
 end;
+
+function Interface_GetComponents(IFace: TInterface): TIntegerArray;
+var
+  C, Child, IL, I: Integer;
+begin
+  try
+    SetLength(Result, C);
+    if SmartIsNull(IFace.Obj) then
+      Exit;
+    IL := SmartGetFieldArraySize(IFace.Obj, hook_interface_Children, 1);
+    if (IL < 1) then Exit;
+    SetLength(Result, IL);
+
+    for I := 0 to IL-1 do
+    begin
+      Child := SmartGetFieldArrayObject(IFace.Obj, hook_interface_Children, I);
+      if not (SmartIsNull(Child)) then
+      begin
+        Result[C] :=I;
+        Inc(C);
+      end;
+      SmartFreeObject(Child);
+    end;
+    SetLength(Result, C);
+  finally
+    SmartFreeObject(Child);
+  end;
+end;

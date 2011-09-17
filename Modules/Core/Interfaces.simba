@@ -43,26 +43,76 @@ Returns an array of all the valid interfaces.
 *)
 function R_GetValidInterfaces: TIntegerArray;
 var
-  Interfaces, IL, I, C: integer;
+  IL, I, C: integer;
 begin
-  try
-    Interfaces := SmartGetFieldObject(0, hook_static_Interfaces);
-    IL := SmartGetFieldArraySize(Interfaces, '', 1);
-    SetLength(Result, IL);
+  IL := SmartGetFieldArraySize(0, hook_static_Interfaces, 1);
+  SetLength(Result, IL);
 
-    for I := 0 to IL-1 do
+  for I := 0 to IL-1 do
+  begin
+    if(R_ValidInterface(I))then
     begin
-      if(R_ValidInterface(I))then
-      begin
-        Result[C] :=I;
-        Inc(C);
-      end;
+      Result[C] :=I;
+      Inc(C);
     end;
-
-    SetLength(Result, C);
-  finally
-    SmartFreeObject(Interfaces);
   end;
+
+  SetLength(Result, C);
+end;
+
+(*
+R_GetInterfaceParent
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInterfaceParent(Child: TInterface): TInterface;
+
+Returns the parent of the Child.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetInterfaceParent(Child: TInterface): TInterface;
+var
+  ParentID: Integer;
+begin
+  ParentID := Interface_GetParentID(Child);
+  if ParentID > 0 then
+    Result := Interface_Create(SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentID shr 16, ParentID and $FFFF));
+end;
+
+(*
+R_GetTopParent
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetTopParent(Child: TInterface): TInterface;
+
+Returns the top parent of the Child.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetTopParent(Child: TInterface): TInterface;
+var
+  ParentID: Integer;
+begin
+  ParentID := Interface_GetParentID(Child);
+  if (ParentID > 0) then
+  begin
+    Result := R_GetInterfaceParent(Child);
+    ParentID := Interface_GetParentID(Result);
+    if (ParentID > 0) then
+    begin
+      Result := R_GetTopParent(Result);
+    end;
+  end else Result := Child;
 end;
 
 (*
@@ -71,7 +121,37 @@ R_GetInterface
 
 .. code-block:: pascal
 
-    function R_GetInterface(ParentI, ChildI: Integer): TInterface;
+    function R_GetInterface(Index: Integer): TInterface;
+
+Retrieve's the interface's object and stores in a TInterface var.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetInterface(Index: Integer): TInterface;
+var
+  IFace: Integer;
+  FChild: TInterface;
+begin
+  try
+    IFace := SmartGetFieldArray2DObject(0, hook_static_Interfaces, Index, 0);
+    if SmartIsNull(IFace)then Exit;
+    FChild := Interface_Create(IFace);
+    Result := R_GetInterfaceParent(FChild);
+  finally
+    Interface_Free(FChild);
+  end;
+end;
+
+(*
+R_GetInterfaceChild
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInterfaceChild(ParentI, ChildI: Integer): TInterface;
 
 Retrieve's the interface's child object and stores in a TInterface var.
 
@@ -80,7 +160,7 @@ Retrieve's the interface's child object and stores in a TInterface var.
   by Drags111
 
 *)
-function R_GetInterface(ParentI, ChildI: Integer): TInterface;
+function R_GetInterfaceChild(ParentI, ChildI: Integer): TInterface;
 var
   Child: Integer;
 begin
@@ -124,22 +204,13 @@ begin
     Exit;
 
   Component := SmartGetFieldArrayObject(Child, hook_interface_Children, ComponentI);
+  SmartFreeObject(Child);
   if SmartIsNull(Component)then
   begin
-    SmartFreeObject(Child);
     Exit;
   end;
 
   Result := Interface_Create(Component);
-end;
-
-function R_GetInterfaceParent(Child: TInterface): TInterface;
-var
-  ParentID: Integer;
-begin
-  ParentID := Interface_GetParentID(Child);
-  if ParentID > 0 then
-    Result := Interface_Create(SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentID shr 16, ParentID and $FFFF));
 end;
 
 (*
@@ -148,7 +219,7 @@ R_GetValidChildren
 
 .. code-block:: pascal
 
-    function R_GetValidChildren(ParentI : Integer): TIntegerArray;
+    function R_GetValidChildren(IFace: TInterface): TIntegerArray;
 
 Returns all the children in the parent interface.
 
@@ -157,21 +228,20 @@ Returns all the children in the parent interface.
   by pyroryan
 
 *)
-function R_GetValidChildren(ParentI : Integer): TIntegerArray;
+function R_GetValidChildren(ParentI: Integer): TIntegerArray;
 var
-  C, Child: Integer;
+  Child, C: Integer;
 begin
-  if not R_ValidInterface(ParentI) then Exit;
   try
     C := 0;
     Child := SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, C);
-    while not SmartIsNull(Child) do
+    while not (SmartIsNull(Child)) do
     begin
       SetArrayLength (Result, C+1);
       Result[C] := C;
       Inc(C);
       SmartFreeObject(Child);
-      Child := SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, C);
+      Child :=SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, C);
     end;
     SetLength(Result, C);
   finally
@@ -197,21 +267,27 @@ Returns all the components in the parent-->child interface.
 function R_GetValidComponents(ParentI, ChildI: Integer): TIntegerArray;
 var
   Child: TInterface;
-  C, Component: Integer;
+  C, Component, IL, I: Integer;
 begin
   try
-    Child := R_GetInterface(ParentI, ChildI);
+    Child := R_GetInterfaceChild(ParentI, ChildI);
+    SetLength(Result, C);
     if SmartIsNull(Child.Obj) then
       Exit;
-    C := 0;
-    Component := SmartGetFieldArrayObject(Child.Obj, hook_interface_Children, C);
-    while not (SmartIsNull(Component)) do
+
+    IL := SmartGetFieldArraySize(Child.Obj, hook_interface_Children, 1);
+    if (IL < 1) then Exit;
+    SetLength(Result, IL);
+
+    for I := 0 to IL-1 do
     begin
-      SetArrayLength (Result, C+1);
-      Result[C] := C;
-      Inc(C);
+      Component := SmartGetFieldArrayObject(Child.Obj, hook_interface_Children, I);
+      if not (SmartIsNull(Component)) then
+      begin
+        Result[C] :=I;
+        Inc(C);
+      end;
       SmartFreeObject(Component);
-      Component := SmartGetFieldArrayObject(Child.Obj, hook_interface_Children, C);
     end;
     SetLength(Result, C);
   finally
@@ -242,8 +318,8 @@ Returns the interface that contains the text.
 function R_FindInterface(Text: String; SearchConst: Integer): TInterface;
 var
   IntArr, ChildArr, CompArr: TIntegerArray;
-  Child: TInterface;
-  i, h, j: Integer;
+  Child, Comp: TInterface;
+  i, h, j, tt: Integer;
   Actions: TStringArray;
   T: String;
 begin
@@ -255,18 +331,20 @@ begin
     if (High(ChildArr) < 0) then Continue;
     for h := 0 to High(ChildArr) do
     begin
-      Child := R_GetInterface(IntArr[i], ChildArr[h]);
+      Child := R_GetInterfaceChild(IntArr[i], ChildArr[h]);
       case SearchConst of
         SEARCH_NAME : T := Interface_GetName(Child);
         SEARCH_TEXT : T := Interface_GetText(Child);
         SEARCH_ACTION :
           begin
             Actions := Interface_GetActions(Child);
-            if R_StrInArr(Text, Actions) then
-            begin
-              Result := Child;
-              Exit;
-            end;
+            if (High(Actions) > -1) then
+              for tt := 0 to High(Actions) do
+                if (Pos(Text, Actions[tt]) > 0) then
+                begin
+                  Result := Child;
+                  Exit;
+                end;
           end;
         else Exit;
       end;
@@ -276,34 +354,38 @@ begin
           Result := Child;
           Exit;
         end;
-      Interface_Free(Child);
-      CompArr := R_GetValidComponents(IntArr[i], ChildArr[h]);
+      CompArr := Interface_GetComponents(Child);
       if (High(CompArr) < 0) then Continue;
       for j := 0 to High(CompArr) do
       begin
-        Child := R_GetInterfaceComponent(IntArr[i], ChildArr[h], CompArr[j]);
+        Comp := R_GetInterfaceComponent(IntArr[i], ChildArr[h], CompArr[j]);
         case SearchConst of
           SEARCH_NAME : T := Interface_GetName(Child);
           SEARCH_TEXT : T := Interface_GetText(Child);
           SEARCH_ACTION :
             begin
               Actions := Interface_GetActions(Child);
-              if R_StrInArr(Text, Actions) then
-              begin
-                Result := Child;
-                Exit;
-              end;
+              if (High(Actions) > -1) then
+                for tt := 0 to High(Actions) do
+                  if (Pos(Text, Actions[tt]) > 0) then
+                  begin
+                    Result := Comp;
+                    Interface_Free(Child);
+                    Exit;
+                  end;
             end;
           else Exit;
         end;
         if SearchConst < SEARCH_ACTION then
           if (Pos(Text, T) > 0) then
           begin
-            Result := Child;
+            Result := Comp;
+            Interface_Free(Child);
             Exit;
           end;
-        Interface_Free(Child);
+        Interface_Free(Comp);
       end;
+      Interface_Free(Child);
     end;
   end;
 end;
@@ -336,15 +418,15 @@ begin
 end;
 
 (*
-R_ClickInterfaceMiddle
+R_ClickInterfaceRange
 ~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    procedure R_ClickInterfaceMiddle(Child: TInterface; ClickType, Range: Integer);
+    procedure R_ClickInterfaceRange(Child: TInterface; ClickType, Rangex, Rangey: Integer);
 
 Moves the mouse to and (depending on the ClickType) will click the interface
-child/component in a RangexRange box of the middle point. The ClickType follows
+child/component in a Rangex by Rangey box of the middle point. The ClickType follows
 the same rule as MouseBox:
   1/mouse_Left  : Left Click
   2/mouse_Right : Right Click
@@ -355,12 +437,12 @@ the same rule as MouseBox:
   by mormonman
 
 *)
-procedure R_ClickInterfaceMiddle(Child: TInterface; ClickType, Range: Integer);
+procedure R_ClickInterfaceRange(Child: TInterface; ClickType, Rangex, Rangey: Integer);
 var
   P: TPoint;
 begin
   P := R_MiddleBox(Interface_GetBounds(Child));
-  R_MouseBox(P.x - (Range/2), P.y - (Range/2), P.x + (Range/2), P.y + (Range/2), ClickType);
+  R_MouseBox(P.x - (Rangex/2), P.y - (Rangey/2), P.x + (Rangex/2), P.y + (Rangey/2), ClickType);
 end;
 
 (*
@@ -386,7 +468,7 @@ var
   UpA, DnA, Box: TInterface;
   Dir: String;
 begin
-  if (Interface_GetID(Target) < 1) then Exit;
+  if (Interface_IsHidden(Target)) then Exit;
   try
     UpA := Interface_Create(SmartGetFieldArrayObject(ScrollBar.Obj, hook_Interface_Children, SCROLLBAR_UP));
     DnA := Interface_Create(SmartGetFieldArrayObject(ScrollBar.Obj, hook_Interface_Children, SCROLLBAR_DOWN));
