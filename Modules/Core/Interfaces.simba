@@ -267,31 +267,14 @@ Returns all the components in the parent-->child interface.
 function R_GetValidComponents(ParentI, ChildI: Integer): TIntegerArray;
 var
   Child: TInterface;
-  C, Component, IL, I: Integer;
 begin
   try
     Child := R_GetInterfaceChild(ParentI, ChildI);
-    SetLength(Result, C);
     if SmartIsNull(Child.Obj) then
       Exit;
 
-    IL := SmartGetFieldArraySize(Child.Obj, hook_interface_Children, 1);
-    if (IL < 1) then Exit;
-    SetLength(Result, IL);
-
-    for I := 0 to IL-1 do
-    begin
-      Component := SmartGetFieldArrayObject(Child.Obj, hook_interface_Children, I);
-      if not (SmartIsNull(Component)) then
-      begin
-        Result[C] :=I;
-        Inc(C);
-      end;
-      SmartFreeObject(Component);
-    end;
-    SetLength(Result, C);
+    Result := Interface_GetComponents(Child);
   finally
-    SmartFreeObject(Component);
     Interface_Free(Child);
   end;
 end;

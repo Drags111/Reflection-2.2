@@ -688,6 +688,21 @@ begin
   Result := PointToBox(Interface_GetAbsolutePos(IFace), P);
 end;
 
+(*
+Interface_GetComponents
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetComponents(IFace: TInterface): TIntegerArray;
+
+Gets Interface's components
+
+.. note::
+
+  by mormonman
+
+*)
 function Interface_GetComponents(IFace: TInterface): TIntegerArray;
 var
   C, Child, IL, I: Integer;
