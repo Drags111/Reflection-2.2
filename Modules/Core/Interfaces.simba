@@ -6,6 +6,14 @@ File containing interface routines.
 
 *)
 
+const
+  {Interface Constants}
+  SEARCH_TEXT = 0;
+  SEARCH_NAME = 1;
+
+  SCROLLBAR_UP     = 4;
+  SCROLLBAR_DOWN   = 5;
+
 (*
 R_ValidInterface
 ~~~~~~~~~~~~~~~~
@@ -232,6 +240,7 @@ function R_GetValidChildren(ParentI: Integer): TIntegerArray;
 var
   Child, C: Integer;
 begin
+  SetLength(Result, 0);
   try
     C := 0;
     Child := SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, C);
@@ -241,7 +250,7 @@ begin
       Result[C] := C;
       Inc(C);
       SmartFreeObject(Child);
-      Child :=SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, C);
+      Child := SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, C);
     end;
     SetLength(Result, C);
   finally
@@ -268,6 +277,7 @@ function R_GetValidComponents(ParentI, ChildI: Integer): TIntegerArray;
 var
   Child: TInterface;
 begin
+  SetLength(Result, 0);
   try
     Child := R_GetInterfaceChild(ParentI, ChildI);
     if SmartIsNull(Child.Obj) then
@@ -281,95 +291,76 @@ end;
 
 (*
 R_FindInterface
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function R_FindInterface(Text: String; SearchConst: Integer): TInterface;
+    function R_FindInterface(var IFace: TInterface; Text: String; SearchType: Integer): Boolean;
 
 Returns the interface that contains the text.
   @Text - EXACT text to search for(case-sensitive)
   @SearchConst - SEARCH_NAME = Search Interface.GetName
                  SEARCH_TEXT = Search Interface.GetText
-                 SEARCH_ACTION = Search Interface.GetActions
 
 .. note::
 
   by mormonman
 
 *)
-function R_FindInterface(Text: String; SearchConst: Integer): TInterface;
+function R_FindInterface(var IFace: TInterface; Text: String; SearchType: Integer): Boolean;
 var
-  IntArr, ChildArr, CompArr: TIntegerArray;
-  Child, Comp: TInterface;
-  i, h, j, tt: Integer;
-  Actions: TStringArray;
-  T: String;
+  AccessorFunc: function(I: TInterface): String;
+  InterfaceIDs, ChildrenIDs, CompIDs: TIntegerArray;
+  CurrChild, CurrComponent: TInterface;
+  I, II, III: Integer;
+  InterfaceStr: String;
 begin
-  IntArr := R_GetValidInterfaces;
-  if (High(IntArr) < 0) then Exit;
-  for i := 0 to High(IntArr) do
+  Result := False;
+  Text := Trim(Lowercase(Text));
+  case SearchType of
+    0: AccessorFunc := @Interface_GetText;
+    1: AccessorFunc := @Interface_GetName;
+  end;
+
+  InterfaceIDs := R_GetValidInterfaces;
+  for I := 0 to High(InterfaceIDs)do
   begin
-    ChildArr := R_GetValidChildren(IntArr[i]);
-    if (High(ChildArr) < 0) then Continue;
-    for h := 0 to High(ChildArr) do
+
+    //Iterate through the interface's children.
+    ChildrenIDs := R_GetValidChildren(InterfaceIDs[I]);
+    for II := 0 to High(ChildrenIDs)do
     begin
-      Child := R_GetInterfaceChild(IntArr[i], ChildArr[h]);
-      case SearchConst of
-        SEARCH_NAME : T := Interface_GetName(Child);
-        SEARCH_TEXT : T := Interface_GetText(Child);
-        SEARCH_ACTION :
-          begin
-            Actions := Interface_GetActions(Child);
-            if (High(Actions) > -1) then
-              for tt := 0 to High(Actions) do
-                if (Pos(Text, Actions[tt]) > 0) then
-                begin
-                  Result := Child;
-                  Exit;
-                end;
-          end;
-        else Exit;
-      end;
-      if SearchConst < SEARCH_ACTION then
-        if (Pos(Text, T) > 0) then
-        begin
-          Result := Child;
-          Exit;
-        end;
-      CompArr := Interface_GetComponents(Child);
-      if (High(CompArr) < 0) then Continue;
-      for j := 0 to High(CompArr) do
+
+      //Iterate through components if they exist.
+      CompIDs := R_GetValidComponents(InterfaceIDs[I], ChildrenIDs[II]);
+      if(Length(CompIDs) > 0)then
       begin
-        Comp := R_GetInterfaceComponent(IntArr[i], ChildArr[h], CompArr[j]);
-        case SearchConst of
-          SEARCH_NAME : T := Interface_GetName(Child);
-          SEARCH_TEXT : T := Interface_GetText(Child);
-          SEARCH_ACTION :
-            begin
-              Actions := Interface_GetActions(Child);
-              if (High(Actions) > -1) then
-                for tt := 0 to High(Actions) do
-                  if (Pos(Text, Actions[tt]) > 0) then
-                  begin
-                    Result := Comp;
-                    Interface_Free(Child);
-                    Exit;
-                  end;
-            end;
-          else Exit;
-        end;
-        if SearchConst < SEARCH_ACTION then
-          if (Pos(Text, T) > 0) then
+        for III := 0 to High(CompIDs)do
+        begin
+          CurrComponent := R_GetInterfaceComponent(InterfaceIDs[I], ChildrenIDs[II], CompIDs[III]);
+          InterfaceStr := Trim(Lowercase(AccessorFunc(CurrComponent)));
+          if(Pos(Text, InterfaceStr) > 0)then
           begin
-            Result := Comp;
-            Interface_Free(Child);
+            IFace := Interface_Create(CurrComponent.Obj);
+            Result := True;
             Exit;
           end;
-        Interface_Free(Comp);
+          Interface_Free(CurrComponent);
+        end;
       end;
-      Interface_Free(Child);
+
+      //Check the current child.
+      CurrChild := R_GetInterfaceChild(InterfaceIDs[I], ChildrenIDs[II]);
+      InterfaceStr := Trim(Lowercase(AccessorFunc(CurrChild)));
+      if(Pos(Text, InterfaceStr) > 0)then
+      begin
+        IFace := Interface_Create(CurrChild.Obj);
+        Result := True;
+        Exit;
+      end;
+      Interface_Free(CurrChild);
     end;
+
   end;
 end;
 
