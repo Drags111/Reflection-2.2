@@ -7,13 +7,32 @@ Shops, Deposit Boxes, etc.
 
 *)
 
+{Interface Related Records}
+type
+  TInvItem = record
+    ID, Slot, StackSize: Integer;
+    Name: String;
+    Actions: TStringArray;
+  end;
+  TInvItemArray = array of TInvItem;
+
+{Null Records}
+function NULL_INVITEM: TInvItem;
+begin
+  Result.ID := -1;
+  Result.Slot := -1;
+  Result.StackSize := -1;
+  Result.Name := '';
+  Result.Actions := [];
+end;
+
 (*
 R_WaitForInterface
 ~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function R_WaitForInterface(IFace: TInterface; TimeOut: Integer; Open: Boolean);
+    function R_WaitForInterface(IFace: TInterface; TimeOut: Integer; Open: Boolean): Boolean;
 
 Returns if the interface is valid, if not it waits until either it times out
 or returns valid.

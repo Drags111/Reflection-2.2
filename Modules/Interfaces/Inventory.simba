@@ -77,3 +77,91 @@ begin
     R_Debug('Inventory Not Found!', '');
 end;
 
+(*
+R_GetInvItem
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInvItem(Slot, InvIF: Integer): TInvItem;
+
+Returns the inventory item.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetInvItem(Slot, InvIF: Integer): TInvItem;
+var
+  Item: TInterface;
+  i: Integer;
+begin
+  Result := NULL_INVITEM;
+  if not InRange(Slot, 1, 28) then
+  begin
+    R_Debug('Invalid Slot', 'R_GetInvItem');
+    Exit;
+  end;
+
+  if (InvIF = -1) then
+    InvIF := R_GetInventoryInterface;
+
+  if (InvIF = -1) then
+    if not R_GameTab(RTAB_INVENTORY) then
+      Exit
+        else InvIF := R_GetInventoryInterface;
+
+  Item := R_GetInterfaceComponent(InvIF, 0, Slot - 1);
+  Result.ID := Interface_GetComponentID(Item);
+  if (Result.ID < 0) then
+  begin
+    Exit;
+    Interface_Free(Item);
+  end;
+  Result.Slot := Slot;
+  Result.StackSize := Interface_GetStackSize(Item);
+  Result.Name := R_TrimHTML(Interface_GetName(Item));
+  Result.Actions := Interface_GetActions(Item);
+  if (Length(Result.Actions) > 0) then
+    for i := 0 to High(Result.Actions) do
+      Result.Actions[i] := R_TrimHTML(Result.Actions[i]);
+  Interface_Free(Item);
+end;
+
+(*
+R_GetInventoryItems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInventoryItems: TInvItemArray;
+
+Returns the inventory items.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetInventoryItems: TInvItemArray;
+var
+  C, I, T: Integer;
+  Temp: TInvItem;
+begin
+  SetLength(Result, 0);
+  T := R_GetInventoryInterface;
+  C := 0;
+  SetLength(Result, 28);
+  for I := 1 to 28 do
+  begin
+    Temp := R_GetInvItem(I, T);
+    if not(Temp = NULL_INVITEM)then
+    begin
+      Result[C] := Temp;
+      Inc(C);
+    end;
+  end;
+  SetLength(Result, C);
+end;
+
