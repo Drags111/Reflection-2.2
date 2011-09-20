@@ -1,0 +1,375 @@
+(*
+Paint
+==========
+
+Contains the routines for paint debugging.
+
+*)
+var
+  PaintCanvas: TBitmap;
+  PaintSetup: Boolean;
+
+(*
+R_LoadTextTPA
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_LoadTextTPA(Text: string; Chars: Integer; var height: integer): TPointArray;
+
+Loads a TPA of the text. It also returns the real height of the Text.
+
+.. note::
+
+  by Raymond
+
+*)
+function R_LoadTextTPA(Text, Chars: string; var height: integer): TPointArray;
+var
+  w: integer;
+begin
+  result := TPAFromText(text,chars,w,height);
+  dec(height);
+end;
+
+(*
+R_SetupPaint
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_SetupPaint;
+
+Loads a TPA of the text. It also returns the real height of the Text.
+
+.. note::
+
+  by Unknown
+
+*)
+procedure R_SetupPaint;
+begin
+  SmartSetDebug(True);
+  PaintCanvas := TBitmap.Create;
+  PaintCanvas.canvas.handle := SmartGetDebugDC;
+  PaintSetup := true;
+end;
+
+(*
+R_ClearCanvas
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    Procedure R_ClearCanvas(canvas: TCanvas; w, h: integer);
+
+Clears a canvas of dimensions (w, h)
+
+.. note::
+
+  by Sir R. Magician, mastaraymond
+
+*)
+Procedure R_ClearCanvas(canvas: TCanvas; w, h: integer);
+var
+  CleanBMP: integer;
+begin
+
+  CleanBMP := BitmapFromString(w, h, '');
+
+  {$ifdef Simba}
+  DrawBitmap(CleanBMP,Canvas,0,0);
+  {$else}
+  SafeDrawBitmap(CleanBMP, canvas, 0, 0);
+  {$endif}
+
+  try
+    FreeBitmap(CleanBMP);
+  except
+    writeln('SMART BITMAP NOT FREED');
+  end;
+
+end;
+
+(*
+R_ClearSmart
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    Procedure R_ClearSmart;
+
+Clears SMART canvas.
+
+.. note::
+
+  by Sir R. Magician
+
+*)
+Procedure R_ClearSmart;
+begin
+  if (not PaintSetup) then
+    R_SetupPaint;
+
+  R_ClearCanvas(PaintCanvas.canvas, MIX2 + 100, MIY2 + 100);
+end;
+
+(*
+R_DrawDotsMulti
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DrawDotsMulti(Clear: boolean; pixels : T2DPointArray);
+
+Draws an ATPA onto the SMART Debug canvas.
+
+.. note::
+
+  by Sir R. Magician
+
+*)
+procedure R_DrawDotsMulti(Clear: boolean; pixels : T2DPointArray);
+{$IFDEF REF_SMART}
+var
+  i, h, color : integer;
+begin
+  if (not PaintSetup) then
+    R_SetupPaint;
+
+  if Clear then R_ClearSmart;
+
+  for h := 0 to High(pixels) do
+  begin
+
+    color := h div 5 + h mod 5;
+    case color of
+      0 : PaintCanvas.canvas.Pen.Color := clWhite;
+      1 : PaintCanvas.canvas.Pen.Color := clYellow;
+      2 : PaintCanvas.canvas.Pen.Color := clBlue;
+      3 : PaintCanvas.canvas.Pen.Color := clLime;
+      4 : PaintCanvas.canvas.Pen.Color := clGreen;
+    end;
+
+    for i:= 0 to High(pixels[h]) do
+    begin
+      PaintCanvas.canvas.moveto(pixels[h][i].x-1, pixels[h][i].y);
+      PaintCanvas.canvas.LineTo(pixels[h][i].x, pixels[h][i].y);
+    end;
+  end;
+
+{$ELSE}
+begin
+{$ENDIF}
+end;
+
+(*
+R_DrawDotsEx
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DrawDotsEx(Clear: boolean; pixels: TPointArray; color: TColor);
+
+Draws a TPA onto the SMART Debug canvas
+
+.. note::
+
+  by Sir R. Magician, caused, mastaraymond
+
+*)
+procedure R_DrawDotsEx(Clear: boolean; pixels: TPointArray; color: TColor);
+{$IFDEF REF_SMART}
+var
+  i : integer;
+begin
+  if (not PaintSetup) then
+    R_SetupPaint;
+
+  PaintCanvas.canvas.Pen.Color := color;
+  if Clear then R_ClearSmart;
+
+  for i:= 0 to high(pixels) do
+  begin
+    PaintCanvas.canvas.moveto(pixels[i].x-1,pixels[i].y);
+    PaintCanvas.canvas.LineTo(pixels[i].x,pixels[i].y);
+  end;
+
+{$ELSE}
+begin
+{$ENDIF}
+
+end;
+
+(*
+R_DrawDots
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DrawDots(Dots: TPointArray);
+
+Draws a TPA onto the SMART Debug canvas
+
+.. note::
+
+  by Sir R. Magician
+
+*)
+procedure R_DrawDots(Dots: TPointArray);
+begin
+  R_DrawDotsEx(True, Dots, clRed);
+end;
+
+(*
+R_DrawBoxEx
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DrawBoxEx(Clear: boolean; Box: TBox; color: TColor);
+
+Draws a TBox onto the SMART Debug canvas
+
+.. note::
+
+  by Sir R. Magician, caused, mastaraymond
+
+*)
+procedure R_DrawBoxEx(Clear: boolean; Box: TBox; color: TColor);
+{$IFDEF REF_SMART}
+begin
+  if (not PaintSetup) then
+    R_SetupPaint;
+
+  PaintCanvas.canvas.Pen.Color := color;
+  if Clear then R_ClearSmart;
+  PaintCanvas.canvas.moveto(Box.x1,Box.y1);
+  PaintCanvas.canvas.LineTo(Box.x2,Box.y1);
+  PaintCanvas.canvas.LineTo(Box.x2,Box.y2);
+  PaintCanvas.canvas.LineTo(Box.x1,Box.y2);
+  PaintCanvas.canvas.LineTo(Box.x1,Box.y1);
+
+{$ELSE}
+begin
+{$ENDIF}
+end;
+
+(*
+R_DrawBox
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DrawBox(Box: TBox);
+
+Draws a TBox onto the SMART Debug canvas
+
+.. note::
+
+  by Sir R. Magician, caused, mastaraymond
+
+*)
+procedure R_DrawBox(Box: TBox);
+begin
+  R_DrawBoxEx(True, Box, clRed);
+end;
+
+(*
+R_DrawBoxMS
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DrawBoxMS(Clear: Boolean; Box: TBox; Color: TColor);
+
+Draws a TBox onto the SMART Debug canvas that is within the bounds of the
+mainscreen
+
+.. note::
+
+  by Sir R. Magician
+
+*)
+procedure R_DrawBoxMS(Clear: Boolean; Box: TBox; Color: TColor);
+begin
+  if (Box.X1 < MSX1) then Box.X1 := MSX1;
+  if (Box.Y1 < MSY1) then Box.Y1 := MSY1;
+  if (Box.X2 > MSX2) then Box.X2 := MSX2;
+  if (Box.Y2 > MSY2) then Box.Y2 := MSY2;
+  R_DrawBoxEx(Clear, Box, Color);
+end;
+
+(*
+R_DrawTextEx
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DrawTextEx(Clear: Boolean; x, y: Integer; font, Text: string; Color:TColor);
+
+Draws text onto the SMART Debug canvas at position x, y
+
+.. note::
+
+  by Jukka, Shuttleu
+
+*)
+procedure R_DrawTextEx(Clear: Boolean; x, y: Integer; font, Text: string; Color:TColor);
+var
+  i, height: integer;
+  tpa: tpointarray;
+begin
+  tpa := R_LoadTextTPA(text,font,height);
+  for i:= 0 to high(tpa) do
+  begin
+    tpa[i].x := tpa[i].x + x;
+    tpa[i].y := tpa[i].y + y;
+  end;
+  R_DrawDotsEx(Clear, tpa, Color);
+end;
+
+(*
+R_DrawText
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DrawText(x, y: Integer; font, Text: string; Color:TColor);
+
+Draws text onto the SMART Debug canvas at position x, y
+
+.. note::
+
+  by Shuttleu
+
+*)
+procedure R_DrawText(x, y: Integer; font, Text: string; Color:TColor);
+begin
+  R_DrawTextEx(False, x, y, font, Text, Color);
+end;
+
+(*
+R_FreeDebug
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_FreeDebug;
+
+Frees the SMART canvas
+
+.. note::
+
+  by Unknown
+
+*)
+procedure R_FreeDebug;
+begin
+  try
+    if (PaintSetup) then
+      PaintCanvas.Free;
+  except
+    Writeln('Failed to free PaintCanvas bitmap: '+ExceptionToString(ExceptionType, ExceptionParam));
+  end;
+end;

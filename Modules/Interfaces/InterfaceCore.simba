@@ -1,0 +1,45 @@
+(*
+Interfaces
+==========
+
+Contains the routines for interfaces. This includes Banking, Inventory, Gametab,
+Shops, Deposit Boxes, etc.
+
+*)
+
+(*
+R_WaitForInterface
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitForInterface(IFace: TInterface; TimeOut: Integer; Open: Boolean);
+
+Returns if the interface is valid, if not it waits until either it times out
+or returns valid.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_WaitForInterface(IFace: TInterface; TimeOut: Integer; Open: Boolean): Boolean;
+var
+  T: Integer;
+begin
+  T := GetSystemTime + TimeOut;
+  while (GetSystemTime < T) do
+  begin
+    Result := ((Interface_GetID(IFace) < 0) and (not Interface_IsHidden(IFace)))
+              xor Open;
+    if Result then Exit;
+    Wait(25 + Random(25));
+  end;
+end;
+
+{$include_once GameTab.simba}
+{$include_once Minimap.simba}
+{$include_once Inventory.simba}
+{$include_once Bank.simba}
+{$include_once Equipment.simba}
+{$include_once Other.simba}

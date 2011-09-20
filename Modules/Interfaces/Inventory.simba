@@ -1,0 +1,79 @@
+(*
+Inventory
+==========
+
+Contains the routines for the Inventory.
+
+*)
+
+(*
+R_GetInventoryInterface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInventoryInterface: Integer;
+
+Returns the inventory interface index.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetInventoryInterface: Integer;
+var
+  IFaceArr: TIntegerArray;
+  i: Integer;
+  IFace: TInterface;
+begin
+  Result := -1;
+  IFaceArr := R_GetValidInterfaces;
+  if (Length(IFaceArr) < 1) then Exit;
+
+  if (R_CurrentGameTab = RTab_Inventory) then
+    if R_ValidInterface(INTERFACE_INVENTORY) then
+    begin
+      Result := INTERFACE_INVENTORY;
+      Exit;
+    end;
+
+  for i := 0 to High(IFaceArr) do
+    if (R_ValidInterface(IFaceArr[i])) then
+    try
+      IFace := R_GetInterfaceChild(IFaceArr[i], 0);
+      if Interface_IsHidden(IFace) or
+        (IFaceArr[i] = INTERFACE_INVENTORY) then Continue;
+      if Interface_IsInventory(IFace)
+        and (Length(Interface_GetComponents(IFace)) > 0) then
+      begin
+        Result := IFaceArr[i];
+        Exit;
+      end;
+    finally
+      Interface_Free(IFace);
+    end;
+end;
+
+(*
+R_InventoryExists
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_InventoryExists: Boolean;
+
+Returns the inventory interface index.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_InventoryExists: Boolean;
+begin
+  Result := (R_GetInventoryInterface <> -1);
+  if not Result then
+    R_Debug('Inventory Not Found!', '');
+end;
+

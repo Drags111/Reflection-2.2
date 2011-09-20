@@ -1,0 +1,69 @@
+(*
+Settings
+====
+
+Contains routines used for getting RS settings.
+
+*)
+
+(*
+R_GetSettingArray
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetSettingArray: TIntegerArray;
+
+Retrives the Settings array from the client.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetSettingArray: TIntegerArray;
+var
+  SettingArray, Data, DL, i: Integer;
+begin
+  try
+    SettingArray := SmartGetFieldObject(0, hook_static_Settings);
+    Data := SmartGetFieldObject(SettingArray, hook_settingarray_Data);
+
+    DL := SmartGetFieldArraySize(Data, '', 1);
+    SetLength(Result, DL);
+    for i := 0 to DL-1 do
+      Result[i] := SmartGetFieldArrayInt(data, '', i);
+  finally
+    SmartFreeObject(Data);
+    SmartFreeOBject(SettingArray);
+  end;
+end;
+
+(*
+R_GetSetting
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetSetting(Setting: Integer): Integer;
+
+Gets the setting value at the specified index.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetSetting(Setting: Integer): Integer;
+var
+  SA: TIntegerArray;
+begin
+  SA := R_GetSettingArray;
+  if(Setting < Length(SA))then
+    Result := SA[Setting]
+  else
+  begin
+    R_Debug('Incorrect setting index passed to GetSetting', 'R_GetSetting');
+    Result := -1;
+  end;
+end;

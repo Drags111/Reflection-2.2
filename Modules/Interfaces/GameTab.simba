@@ -1,0 +1,123 @@
+(*
+GameTab
+==========
+
+Contains the routines for GameTabs.
+
+*)
+
+(*
+R_ValidGameTab
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ValidGameTab(Tab: Integer): Boolean;
+
+Returns if the Tab is a valid GameTab
+
+.. note::
+
+  by mormonman
+
+*)
+function R_ValidGameTab(Tab: Integer): Boolean;
+var
+  TabArray: TIntegerArray;
+begin
+  TabArray := [RTAB_FRIENDSLIST, RTAB_CHAT, RTAB_CLANCHAT, RTAB_OPTIONS,
+               RTAB_EMOTES, RTAB_MUSIC, RTAB_NOTES, RTAB_COMBAT, RTAB_TASKS,
+               RTAB_STATS, RTAB_QUESTS, RTAB_INVENTORY, RTAB_EQUIPMENT,
+               RTAB_PRAYER, RTAB_SPELLBOOK];
+  Result := InIntArray(TabArray, Tab);
+end;
+
+(*
+R_CurrentGameTab
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CurrentGameTab: Integer;
+
+Returns the gametab index (one of the constants) of the active game tab.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_CurrentGameTab: Integer;
+var
+  GameTabs: TIntegerArray;
+  I: Integer;
+  Child: TInterface;
+begin
+  Result := -1;
+  GameTabs := [RTAB_FRIENDSLIST, RTAB_CHAT, RTAB_CLANCHAT, RTAB_OPTIONS,
+               RTAB_EMOTES, RTAB_MUSIC, RTAB_NOTES, RTAB_COMBAT, RTAB_TASKS,
+               RTAB_STATS, RTAB_QUESTS, RTAB_INVENTORY, RTAB_EQUIPMENT,
+               RTAB_PRAYER, RTAB_SPELLBOOK];
+  for I := 0 to High(GameTabs)do
+  try
+    Child := R_GetInterfaceChild(INTERFACE_GAMETAB, GameTabs[I]);
+    if (Interface_GetTextureID(Child) = 1836)
+      and (not Interface_IsHidden(Child)) then
+    begin
+      Result := GameTabs[I];
+      Exit;
+    end;
+  finally
+    Interface_Free(Child);
+  end;
+end;
+
+(*
+R_GameTab
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GameTab(Tab: Integer): Boolean;
+
+Clicks the specified GameTab (see Globals.simba for a list of valid
+GameTab constants).
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GameTab(Tab: Integer): Boolean;
+var
+  T: Integer;
+  Child: TInterface;
+begin
+  Result := False;
+  if not R_ValidGameTab(Tab) then
+  begin
+    R_Debug('Invalid tab number', 'R_GameTab');
+    Exit;
+  end;
+
+  Result := (Tab = R_CurrentGameTab);
+  if not Result then
+  try
+    Child := R_GetInterfaceChild(INTERFACE_GAMETAB, Tab);
+    if Interface_IsHidden(Child) then Exit;
+    R_ClickInterface(Child, mouse_Left);
+    T := GetSystemTime + 2000;
+    while GetSystemTime < T do
+    begin
+      if (R_CurrentGameTab = Tab) then
+      begin
+        Result := True;
+        Exit;
+      end;
+      Wait(50 + Random(25));
+    end;
+  finally
+    Interface_Free(Child);
+  end;
+end;
+
