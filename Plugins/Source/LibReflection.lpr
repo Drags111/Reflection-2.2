@@ -65,6 +65,7 @@ var
    std_getFieldArraySize: function(Parent: Integer; path: String; dim: Integer): Integer; stdcall;
    std_isEqual: function(Obja, ObjB: Integer): Boolean; stdcall;
    std_isNull: function(Obj: Integer): Boolean; stdcall;
+   std_setDebug: procedure(Debug: Boolean); stdcall;
    std_freeObject: procedure(Obj: Integer); stdcall;
 
 procedure SetMemoryManagement(Use: Boolean);
@@ -531,6 +532,11 @@ begin
   Result := std_isNull(Obj);
 end;
 
+procedure SetDebug(Debug: Boolean);
+begin
+  std_setDebug(Debug);
+end;
+
 procedure CleanSmartObjects(); stdcall;
 var
   I: Integer;
@@ -545,7 +551,7 @@ end;
 
 function GetFunctionCount(): Integer; stdcall; export;
 begin
-  Result := 84;
+  Result := 85;
 end;
 
 function GetFunctionCallingConv(X : Integer) : Integer; stdcall; export;
@@ -831,6 +837,11 @@ begin
         ProcAddr := @IsNull;
         StrPCopy(ProcDef, 'function SmartIsNull(Obj: Integer): Boolean;');
       end;
+    84:
+      begin
+        ProcAddr := @SetDebug;
+        StrPCopy(ProcDef, 'procedure SmartSetDebug(Debug: Boolean);');
+      end;
     36:
       begin
         ProcAddr := @CleanSmartObjects;
@@ -900,6 +911,7 @@ exports GetFieldArray3DChar;
 exports GetFieldArraySize;
 exports IsEqual;
 exports IsNull;
+exports SetDebug;
 
 initialization
 
@@ -967,6 +979,7 @@ Pointer(std_getFieldArraySize) := GetProcedureAddress(SmartLib, PChar('std_getFi
 Pointer(std_isEqual) := GetProcedureAddress(SmartLib, PChar('std_isEqual'));
 Pointer(std_isNull) := GetProcedureAddress(SmartLib, PChar('std_isNull'));
 Pointer(std_freeObject) := GetProcedureAddress(SmartLib, PChar('std_freeObject'));
+Pointer(std_setDebug) := GetProcedureAddress(SmartLib, PChar('std_setDebug'));
 //Pointer() := GetProcedureAddress(SmartLib, PChar('')); <- Template.
 
 finalization

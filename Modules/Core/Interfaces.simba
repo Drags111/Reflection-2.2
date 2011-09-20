@@ -119,6 +119,7 @@ begin
     if (ParentID > 0) then
     begin
       Result := R_GetTopParent(Result);
+      Interface_Free(Child);
     end;
   end else Result := Child;
 end;

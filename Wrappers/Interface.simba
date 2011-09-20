@@ -164,17 +164,17 @@ Gets the actions of the IFace.
 *)
 function Interface_GetActions(IFace: TInterface): TStringArray;
 var
-  Length, C, i: Integer;
+  Len, C, i: Integer;
   Action: String;
 begin
-  Length := SmartGetFieldArraySize(IFace.Obj, Hook_Interface_Actions, 1);
-  if (Length <= 0)then
+  Len := SmartGetFieldArraySize(IFace.Obj, Hook_Interface_Actions, 1);
+  if (Len <= 0)then
     Exit;
 
   C := 0;
-  SetLength(Result, Length);
+  SetLength(Result, Len);
 
-  for i := 0 to Length-1 do
+  for i := 0 to Len-1 do
   begin
     Action := SmartGetFieldArrayString(IFace.Obj, hook_interface_Actions, i);
     if(Action <> '')then
@@ -219,6 +219,26 @@ begin
 end;
 
 (*
+Interface_IsInventory
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_IsInventory(IFace: TInterface): Boolean;
+
+Gets Interface.IsInventory.
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_IsInventory(IFace: TInterface): Boolean;
+begin
+  Result := SmartGetFieldBoolean(IFace.Obj, hook_interface_IsInventory);
+end;
+
+(*
 Interface_GetID
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -236,6 +256,26 @@ Gets Interface.ID
 function Interface_GetID(IFace: TInterface): Integer;
 begin
   Result := SmartGetFieldInt(IFace.Obj, hook_interface_ID);
+end;
+
+(*
+Interface_GetComponentIndex
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function Interface_GetComponentIndex(IFace: TInterface): Integer;
+
+Gets Interface.ComponentIndex
+
+.. note::
+
+  by mormonman
+
+*)
+function Interface_GetComponentIndex(IFace: TInterface): Integer;
+begin
+  Result := SmartGetFieldInt(IFace.Obj, hook_interface_ComponentIndex);
 end;
 
 (*

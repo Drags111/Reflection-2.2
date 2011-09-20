@@ -263,6 +263,7 @@ const
 	hook_interface_IsHidden = 'fb';
 	hook_interface_ParentID = 'Nb';
 	hook_interface_ID = 'T';
+  hook_interface_ComponentIndex = 'Rb';
 	hook_interface_ComponentID = 'ec';
 	hook_interface_ComponentStackSize = 'Lc';
 	hook_interface_Actions = 'pc';
@@ -277,6 +278,7 @@ const
 	hook_interface_HorizontalScrollBarThumbSize = 'cc';
 	hook_interface_VerticalScrollBarPosition = 'Gc';
 	hook_interface_VerticalScrollBarThumbSize = 'tb';
+  hook_interface_IsInventory = 'X';
 
 {Class InterfaceNode}
 	class_InterfaceNode = 'dba';
