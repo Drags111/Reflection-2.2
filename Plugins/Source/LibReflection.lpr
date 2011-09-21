@@ -568,7 +568,7 @@ begin
     0:
       begin
         ProcAddr := @SmartSetup;
-        StrPCopy(ProcDef, 'procedure SmartSetupEx(Root, Params: String; Width, Height: Integer; InitSeq: String);');
+        StrPCopy(ProcDef, 'procedure SmartSetup(Root, Params: String; Width, Height: Integer; InitSeq: String);');
       end;
     1..28: libs_GetFunctionInfo(X, ProcAddr, ProcDef);
     29: libs_GetFunctionInfo(32, ProcAddr, ProcDef);
