@@ -95,7 +95,7 @@ begin
     Writeln('Invalid world number or corrupted world list. Please review your settings');
     TerminateScript;
   end;
-  SmartSetupEx('http://'+Prefix+'.runescape.com/', 'plugin.js?param=o0,a' + IntToStr((Integer(not(Signed)) + 1) * Integer(not((SuperDetail and Signed)))) + ',m' + IntToStr(Integer(Members)), 765, 503, 's');
+  SmartSetup('http://'+Prefix+'.runescape.com/', 'plugin.js?param=o0,a' + IntToStr((Integer(not(Signed)) + 1) * Integer(not((SuperDetail and Signed)))) + ',m' + IntToStr(Integer(Members)), 765, 503, 's');
 end;
 
 function R_Smart_Ready: Boolean;
